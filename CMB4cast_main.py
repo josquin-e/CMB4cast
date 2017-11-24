@@ -786,11 +786,12 @@ def core_function(configurations, components_v, camb, \
 		for file_ in fnames_fid:
 			if name_fid in file_:
 				output[file_] += 1
-
-	fnames_fid = [max(output.iteritems(), key=operator.itemgetter(1))[0]]
-
-
-	if output[fnames_fid[0]] < len(params_fid_v[0].keys())-1 :
+	
+	if output.keys():
+		fnames_fid = [max(output.iteritems(), key=operator.itemgetter(1))[0]]
+		if output[fnames_fid[0]] < len(params_fid_v[0].keys())-1 :
+			fnames_fid = []
+	else:
 		fnames_fid = []
 
 	if not fnames_fid:

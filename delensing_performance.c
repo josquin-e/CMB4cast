@@ -85,9 +85,7 @@ void gl_quad(double x1, double x2, int n, double x[], double w[]) {
     w[n+1-i]=w[i];
     
   }
-  
 }
-
 
 //////////////////////////////////////////////////////////////////////
 
@@ -98,7 +96,7 @@ void gl_quad(double x1, double x2, int n, double x[], double w[]) {
 void little_d_recursion(int l, int m, int n, int n_x, double *x,
                         double *d_l_mn, double *d_lm1_mn) {
 
-  int i;
+  int i1;
   double ld, md, nd, lp1, term_one, term_two, twolp1;
   
   // speed things up a bit
@@ -109,11 +107,11 @@ void little_d_recursion(int l, int m, int n, int n_x, double *x,
   twolp1 = 2.0 * ld + 1.0;
   
   // do the recursion
-  for (i = 0; i < n_x; i++) {
-    term_one = lp1 * twolp1 * x[i] - md * nd * twolp1 / ld;
+  for (i1 = 0; i1 < n_x; i1++) {
+    term_one = lp1 * twolp1 * x[i1] - md * nd * twolp1 / ld;
     term_two = lp1 * sqrt((ld * ld - md * md) * 
                           (ld * ld - nd * nd)) / ld;
-    d_l_mn[i] = (term_one * d_l_mn[i] - term_two * d_lm1_mn[i]) / 
+    d_l_mn[i1] = (term_one * d_l_mn[i1] - term_two * d_lm1_mn[i1]) / 
       sqrt((lp1 * lp1 - md * md) * (lp1 * lp1 - nd * nd));
   }
   
@@ -127,15 +125,14 @@ void little_d_recursion(int l, int m, int n, int n_x, double *x,
 */
 double sum(double *x, int n_x) {
 
-  int i;
+  int i1;
   double sum;
 
   sum = 0.0;
-  for (i = 0; i < n_x; i++) {
-    sum += x[i];
+  for (i1 = 0; i1 < n_x; i1++) {
+    sum += x[i1];
   }
   return sum;
-  
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -153,14 +150,14 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
   
   int i, j, k, ind, n_x, n_ell, l_min_abs;
   double *x, *w, *z_p_p, *z_p_m, *z_ep_1p1, *z_ep_1m1, *z_ep_3p1,
-    *z_ep_3m1, *z_ep_3p3, *z_ep_3m3, *d_l_1p1, *d_l_1m1, *d_l_3p1,
-    *d_l_3m1, *d_l_3p3, *d_l_3m3, *d_lm1_1p1, *d_lm1_1m1, *d_lm1_3p1,
-    *d_lm1_3m1, *d_lm1_3p3, *d_lm1_3m3, *d_lm1_2p2, *d_lm1_2m2,
-    *z_b_p, *z_b_m, *n_l_pp_last, *temp_1p1, *temp_1m1, *temp_3p1,
-    *temp_3m1, *temp_3p3, *temp_3m3, *d_l_2p2, *d_l_2m2, *temp_2p2,
-    *temp_2m2, *c_l_bb_l_only, *temp;
+          *z_ep_3m1, *z_ep_3p3, *z_ep_3m3, *d_l_1p1, *d_l_1m1, *d_l_3p1,
+            *d_l_3m1, *d_l_3p3, *d_l_3m3, *d_lm1_1p1, *d_lm1_1m1, *d_lm1_3p1,
+              *d_lm1_3m1, *d_lm1_3p3, *d_lm1_3m3, *d_lm1_2p2, *d_lm1_2m2,
+                *z_b_p, *z_b_m, *n_l_pp_last, *temp_1p1, *temp_1m1, *temp_3p1,
+                  *temp_3m1, *temp_3p3, *temp_3m3, *d_l_2p2, *d_l_2m2, *temp_2p2,
+                    *temp_2m2, *c_l_bb_l_only, *temp;
+ 
   double alpha, conv_test, el;
-  
   
   // define quadrature points. we're performing the needed integrals
   // via Gauss-Legendre integration using n_x = (3 l_max + 1) / 2 
@@ -172,9 +169,14 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
   printf("sample count = %d\n", n_x);
   x = (double*)malloc(n_x * sizeof(double));
   w = (double*)malloc(n_x * sizeof(double));
+  for(i = 0; i < n_x; i++) {
+    x[i] = 0.0 ;
+    w[i] = 0.0 ;
+  }
+
   gl_quad(-1.0, 1.0, n_x, x-1, w-1); // -1 fixes stupid NR offset
-  printf("=====================================\n");
   
+  printf("=====================================\n");
   
   // define correlation functions
   printf("allocating arrays\n");
@@ -209,6 +211,14 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
   d_lm1_3p3 = (double*)malloc(n_x * sizeof(double));
   d_lm1_3m3 = (double*)malloc(n_x * sizeof(double));
   for (i = 0; i < n_x; i++) {
+    d_l_1p1[i] = 0.0 ;
+    d_l_1m1[i] = 0.0 ;
+    d_lm1_1p1[i] = 0.0 ;
+    d_lm1_1m1[i] = 0.0 ;
+    d_l_2p2[i] = 0.0 ;
+    d_l_2m2[i] = 0.0 ;
+  }
+  for (i = 0; i < n_x; i++) {
     d_l_1p1[i] = 0.5 * (2.0 * pow(x[i], 2.0) + x[i] - 1.0);
     d_l_1m1[i] = 0.5 * (-2.0 * pow(x[i], 2.0) + x[i] + 1.0);
     d_lm1_1p1[i] = 0.5 * (1.0 + x[i]);
@@ -229,15 +239,16 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
   temp_3m3 = (double*)malloc(n_x * sizeof(double));
   temp = (double*)malloc(n_x * sizeof(double));
   
-  
   // @TODO - can we use L_min = 2 for lensed stuff?
-  
   
   // calculate the true lensed B mode: this is the difference between
   // the lensed and unlensed BB inputs. apologies for the confusing
-  // nomenclature//
+  // nomenclature //
   n_ell = l_max - l_min + 1;
   c_l_bb_l_only = (double*)malloc((n_ell) * sizeof(double));
+  for (i = 0; i < n_ell; i++) {
+    c_l_bb_l_only[i] = 0.0 ;
+  }
   for (i = 0; i < n_ell; i++) {
     c_l_bb_l_only[i] = c_l_bb_l[i] - c_l_bb_t[i];
   }
@@ -290,60 +301,61 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
          sum(c_l_bb_l, n_ell), sum(c_l_pp, n_ell), sum(f_l_cor, n_ell),
          sum(n_l_ee_bb, n_ell), conv_thresh, no_iteration,
          sum(n_l_pp, n_ell), sum(c_l_bb_r, n_ell));
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(c_l_ee_u[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(c_l_ee_l[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(c_l_bb_t[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(c_l_bb_l[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(c_l_pp[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(f_l_cor[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(n_l_ee_bb[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(n_l_pp[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; i < n_ell; i++) {
-    if (isnan(c_l_bb_r[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
+  
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(c_l_ee_u[i])) {
+  //     printf("NANANANANANANAN Nl EE U %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(c_l_ee_l[i])) {
+  //     printf("NANANANANANANAN Cl EE U %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(c_l_bb_t[i])) {
+  //     printf("NANANANANANANAN Cl BB T %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(c_l_bb_l[i])) {
+  //     printf("NANANANANANANAN Cl BB l %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(c_l_pp[i])) {
+  //     printf("NANANANANANANAN Cl PP %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(f_l_cor[i])) {
+  //     printf("NANANANANANANAN Fl corr %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(n_l_ee_bb[i])) {
+  //     printf("NANANANANANANAN Nl EE BB %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(n_l_pp[i])) {
+  //     printf("NANANANANANANAN Nl PP %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
+  // for (i = 0; i < n_ell; i++) {
+  //   if (isnan(c_l_bb_r[i])) {
+  //     printf("NANANANANANANAN Cl BB %d\n", i);
+  //     exit(EXIT_FAILURE);
+  //   }
+  // }
          
   
   // loop through l to calculate EE zeta functions, which we only 
@@ -361,27 +373,29 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
     z_ep_3m1[i] = 0.0;
     z_ep_1p1[i] = 0.0;
     z_ep_1m1[i] = 0.0;
+    d_l_3p1[i] = 0.0;
+    d_l_3m1[i] = 0.0;
+    d_l_3p3[i] = 0.0;
+    d_l_3m3[i] = 0.0;
   }
+
   for (i = l_min_abs; i <= l_max; i++) {
-    
     
     // define C_l index
     ind = i - l_min;
     el = (double) i;
-    
-    
+
     // d_l_3_blah are zero for l < 3
     if (i == 3) {
-      
       for (k = 0; k < n_x; k++) {
         d_l_3p1[k] = sqrt(15.0) / 8.0 * (1.0 + x[k] - pow(x[k], 2.0) - 
-                                         pow(x[k], 3.0));
+                                                    pow(x[k], 3.0));
         d_l_3m1[k] = sqrt(15.0) / 8.0 * (1.0 - x[k] - pow(x[k], 2.0) + 
-                                         pow(x[k], 3.0));
+                                                    pow(x[k], 3.0));
         d_l_3p3[k] = pow((0.5 * (1.0 + x[k])), 3.0);
+
         d_l_3m3[k] = pow((0.5 * (1.0 - x[k])), 3.0);
       }
-      
     }
     
     
@@ -395,21 +409,19 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
         z_ep_3m3[k] += (2.0 * el + 1.0) * pow(c_l_ee_u[ind], 2.0) / 
           (c_l_ee_l[ind] + n_l_ee_bb[ind]) * (el - 2.0) * (el + 3.0) * d_l_3m3[k];
         z_ep_3p1[k] += (2.0 * el + 1.0) * pow(c_l_ee_u[ind], 2.0) / 
-          (c_l_ee_l[ind] + n_l_ee_bb[ind]) * sqrt((el - 1.0) * (el + 2.0) * 
-                                                  (el - 2.0) * (el + 3.0)) *
-          d_l_3p1[k];
+          (c_l_ee_l[ind] + n_l_ee_bb[ind]) * sqrt((el - 1.0) * (el + 2.0) * (el - 2.0) * (el + 3.0)) * d_l_3p1[k];
         z_ep_3m1[k] += (2.0 * el + 1.0) * pow(c_l_ee_u[ind], 2.0) / 
-          (c_l_ee_l[ind] + n_l_ee_bb[ind]) * sqrt((el - 1.0) * (el + 2.0) * 
-                                                  (el - 2.0) * (el + 3.0)) * 
-          d_l_3m1[k];
+          (c_l_ee_l[ind] + n_l_ee_bb[ind]) * sqrt((el - 1.0) * (el + 2.0) * (el - 2.0) * (el + 3.0)) * d_l_3m1[k];
         z_ep_1p1[k] += (2.0 * el + 1.0) * pow(c_l_ee_u[ind], 2.0) / 
-          (c_l_ee_l[ind] + n_l_ee_bb[ind]) * (el - 1.0) * (el + 2.0) * d_l_1p1[k];
+                                 (c_l_ee_l[ind] + n_l_ee_bb[ind]) * (el - 1.0) * (el + 2.0) * d_l_1p1[k];
         z_ep_1m1[k] += (2.0 * el + 1.0) * pow(c_l_ee_u[ind], 2.0) / 
-          (c_l_ee_l[ind] + n_l_ee_bb[ind]) * (el - 1.0) * (el + 2.0) * d_l_1m1[k];
+                                 (c_l_ee_l[ind] + n_l_ee_bb[ind]) * (el - 1.0) * (el + 2.0) * d_l_1m1[k];
+
+        // printf("ind=%d, c_l_ee_l[ind]=%f, n_l_ee_bb[ind]=%f, d_l_3p3[k]=%f\n", ind, c_l_ee_l[ind], n_l_ee_bb[ind], d_l_3p3[k]);
       }
+      // if(i>l_min){return;}
       
     }
-    
     
     // update Wigner d functions
     // keep track of Wigner d function for last ell
@@ -421,12 +433,14 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
       temp_3p3[k] = d_l_3p3[k];
       temp_3m3[k] = d_l_3m3[k];
     }
+
     little_d_recursion(i, 1, 1, n_x, x, d_l_1p1, d_lm1_1p1);
     little_d_recursion(i, 1, -1, n_x, x, d_l_1m1, d_lm1_1m1);
     little_d_recursion(i, 3, 1, n_x, x, d_l_3p1, d_lm1_3p1);
     little_d_recursion(i, 3, -1, n_x, x, d_l_3m1, d_lm1_3m1);
     little_d_recursion(i, 3, 3, n_x, x, d_l_3p3, d_lm1_3p3);
     little_d_recursion(i, 3, -3, n_x, x, d_l_3m3, d_lm1_3m3);
+
     for (k = 0; k < n_x; k++) {
       d_lm1_1p1[k] = temp_1p1[k];
       d_lm1_1m1[k] = temp_1m1[k];
@@ -436,8 +450,17 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
       d_lm1_3m3[k] = temp_3m3[k];
     }
 
+    // printf("%e\n", sum(z_ep_3p3, n_x));
+    // for (i = 0; i < n_x; i++) {
+    //   if (isnan(z_ep_3p3[i])) {
+    //     printf("NANANANANANANAN in z_ep_3p3 .... %d\n", i);
+    //     exit(EXIT_FAILURE);
+    //   }
+    // }
 
+  // end of the loop over i 
   }
+
   for (i = 0; i < n_x; i++) {
     z_ep_3p3[i] /= 4.0 * pi;
     z_ep_3m3[i] /= 4.0 * pi;
@@ -446,14 +469,6 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
     z_ep_1p1[i] /= 4.0 * pi;
     z_ep_1m1[i] /= 4.0 * pi;
   }
-  printf("%e\n", sum(z_ep_3p3, n_x));
-  for (i = 0; i < n_x; i++) {
-    if (isnan(z_ep_3p3[i])) {
-      printf("NANANANANANANAN %d\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-  
   
   // in LSS-delensing case, assume lensing measurement has come from
   // cross-correlation of noisy lensing estimate with CIB, with some
@@ -581,27 +596,34 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
     for (i = 0; i < n_x; i++) {
       z_b_p[i] = 0.0;
       z_b_m[i] = 0.0;
+      temp_2p2[i] = 0.0;
+      temp_2m2[i] = 0.0;
+      d_l_1p1[i] = 0.0;
+      d_l_1m1[i] = 0.0;
+      d_lm1_1p1[i] = 0.0;
+      d_lm1_1m1[i] = 0.0;
     }
+
     for (i = l_min_abs; i <= l_max; i++) {
       
       ind = i - l_min;
       el = (double) i;
-      
       
       // update correlation functions
       if (i >= l_min) {
         
         for (k = 0; k < n_x; k++) {
           z_b_p[k] += (2.0 * el + 1.0) / 
-            (c_l_bb_t[ind] + c_l_bb_l_only[ind] + 
-             n_l_ee_bb[ind]) * d_l_2p2[k];
+              (c_l_bb_t[ind] + c_l_bb_l_only[ind] + 
+                   n_l_ee_bb[ind]) * d_l_2p2[k];
           z_b_m[k] += (2.0 * el + 1.0) / 
-            (c_l_bb_t[ind] + c_l_bb_l_only[ind] + 
-             n_l_ee_bb[ind]) * d_l_2m2[k];
+                 (c_l_bb_t[ind] + c_l_bb_l_only[ind] + 
+                   n_l_ee_bb[ind]) * d_l_2m2[k];
+          // printf(" z_b_m[k]=%f, c_l_bb_t[ind]=%f, c_l_bb_l_only[ind]=%f, n_l_ee_bb[ind]=%f\n",  z_b_m[k], c_l_bb_t[ind], c_l_bb_l_only[ind], n_l_ee_bb[ind]);
+          // printf("k=%d, z_b_m[k]=%f,  \n",  k, z_b_m[k] );
         }
-        
+        // if(i == l_min){ return; }
       }
-      
       
       // update Wigner d function and store last value
       for (k = 0; k < n_x; k++) {
@@ -614,13 +636,13 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
         d_lm1_2p2[k] = temp_2p2[k];
         d_lm1_2m2[k] = temp_2m2[k];
       }
-      
+    // end of the loop over i  
     }
+
     for (i = 0; i < n_x; i++) {
       z_b_p[i] /= 4.0 * pi;
       z_b_m[i] /= 4.0 * pi;
     }
-    
     
     // calculate lensing potential noise
     for (i = 0; i < n_x; i++) {
@@ -629,6 +651,7 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
       d_lm1_1p1[i] = 0.5 * (1.0 + x[i]);
       d_lm1_1m1[i] = 0.5 * (1.0 - x[i]);
     }
+
     for (i = l_min_abs; i <= l_max; i++) {
       
       // define index into C_l array
@@ -637,7 +660,7 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
       
       // integrate over correlation functions to get C_l
       if (i >= l_min) {
-        
+        // if(i > l_min){ return;}        
         for (k = 0; k < n_x; k++) {
           temp[k] = ((z_ep_3p3[k] * z_b_p[k] - 
                       2.0 * z_ep_3m1[k] * z_b_m[k] + 
@@ -645,11 +668,20 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
                      (z_ep_3m3[k] * z_b_m[k] - 
                       2.0 * z_ep_3p1[k] * z_b_p[k] + 
                       z_ep_1m1[k] * z_b_m[k]) * d_l_1m1[k]) * 
-            w[k];
-        }
-        n_l_pp[ind] = 1.0 / (sum(temp, n_x) * pi / 4.0 * el * (el + 1.0));
+                              w[k];
         
+        // if((k>=0)&&(k<=5)){
+        // printf("temp[k]=%f || z_ep_3p3[k]=%f, z_b_p[k]=%f, z_ep_3m1[k]=%f, z_b_m[k]=%f, z_ep_1p1[k]=%f, d_l_1p1[k]=%f, z_ep_3m3[k]=%f, z_ep_3p1[k]=%f, z_ep_1m1[k]=%f, d_l_1m1[k]=%f, w[k]=%f\n", temp[k], z_ep_3p3[k], z_b_p[k], z_ep_3m1[k], z_b_m[k], z_ep_1p1[k], d_l_1p1[k], z_ep_3m3[k], z_ep_3p1[k], z_ep_1m1[k], d_l_1m1[k], w[k]);
+        // printf("k=%d, temp[k]=%f \n", k, temp[k]);
+        // }
+        // if(k >100 ){ return;}
+        }
+        // printf("sum(temp, n_x)=%f\n", sum(temp, 2000));
+        n_l_pp[ind] = 1.0 / (sum(temp, n_x) * pi / 4.0 * el * (el + 1.0));
+        // printf("  n_l_pp[ind] = %f\n",   n_l_pp[ind] );
+      
       }
+
       
       // update Wigner d function and store last value
       for (k = 0; k < n_x; k++) {
@@ -664,8 +696,6 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
       }
       
     }
-    
-    
     // iterate to optimise delensing
     // @TODO - there's a lot that can be calculated just once and stored
     //         if there's memory for it
@@ -674,10 +704,8 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
     j = 0;
     do {
       
-      
       // iteration counter
       j += 1;
-      
       
       // calculate the phi zeta function
       for (i = 0; i < n_x; i++) {
@@ -720,6 +748,7 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
         }
         
       }
+
       for (i = 0; i < n_x; i++) {
         z_p_p[i] /= 4.0 * pi;
         z_p_m[i] /= 4.0 * pi;
@@ -844,6 +873,7 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
         d_lm1_1p1[i] = 0.5 * (1.0 + x[i]);
         d_lm1_1m1[i] = 0.5 * (1.0 - x[i]);
       }
+
       for (i = 0; i < n_ell; i++) {
         n_l_pp_last[i] = n_l_pp[i];
         n_l_pp[i] = 0.0;
@@ -860,11 +890,11 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
           for (k = 0; k < n_x; k++) {
             temp[k] = ((z_ep_3p3[k] * z_b_p[k] - 
                         2.0 * z_ep_3m1[k] * z_b_m[k] + 
-                        z_ep_1p1[k] * z_b_p[k]) * d_l_1p1[k] - 
-                       (z_ep_3m3[k] * z_b_m[k] - 
-                        2.0 * z_ep_3p1[k] * z_b_p[k] + 
-                        z_ep_1m1[k] * z_b_m[k]) * d_l_1m1[k]) * 
-              w[k];
+                          z_ep_1p1[k] * z_b_p[k]) * d_l_1p1[k] - 
+                          (z_ep_3m3[k] * z_b_m[k] - 
+                            2.0 * z_ep_3p1[k] * z_b_p[k] + 
+                              z_ep_1m1[k] * z_b_m[k]) * d_l_1m1[k]) * 
+                                w[k];
           }
           n_l_pp[ind] = 1.0 / (sum(temp, n_x) * pi / 4.0 * el * (el + 1.0));
           
@@ -884,11 +914,12 @@ void delensing_performance(int l_min, int l_max, double *c_l_ee_u,
         
       }
       
-      
       // test for convergence and pretty plot again
       for (i = 0; i < n_ell; i++) {
         temp[i] = (n_l_pp[i] - n_l_pp_last[i]) / n_l_pp[i];
       }
+
+
       conv_test = fabs(sum(temp, n_ell));
       printf("%3d: |sum(delta N_\ell^pp)| = %10.3E\n", j, conv_test);
       if (conv_test < conv_thresh) break;
@@ -1293,6 +1324,13 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < l_min - l_min_camb; i++) {
     fgets(buffer, buf_len, fp_1);
     fgets(buffer, buf_len, fp_2);
+  }
+  for (i = 0; i < n_ell; i++) {
+    c_l_ee_u[i] = 0.0 ;
+    c_l_ee_l[i] = 0.0 ;
+    c_l_bb_u[i] = 0.0 ;
+    c_l_bb_l[i] = 0.0 ;
+    c_l_pp[i] = 0.0 ;
   }
   for (i = 0; i < n_ell; i++) {
     fscanf(fp_1, "  %4d   %lf   %lf   %lf   %lf   %lf   %lf   %lf",

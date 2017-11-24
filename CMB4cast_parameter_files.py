@@ -2,6 +2,10 @@
 Parameter file for a run with CMB4cast
 '''
 
+import numpy as np
+from collections import OrderedDict
+import CMB4cast_utilities as CMB4U
+
 #################
 """
 FIDUCIAL COSMOLOGY
@@ -60,6 +64,14 @@ prior_sync = 2*0.2
 alpha_knee = 0.0*np.ones(len(frequencies))
 ell_knee = 0.0*np.ones(len(frequencies))
 
+#################
+"""
+COMBINATION WITH OTHER INSTRUMENTS
+"""
+cbass = False
+quijote = False
+planck = False
+
 ####################
 """
 DEFINE BELOW THE SKY TEMPLATES AND THEIR FREQUENCY DEPENDENCE
@@ -80,6 +92,24 @@ analytic_expr_per_template = OrderedDict([ \
      # ('dBQsync','log( nu / nu_ref ) * ( nu / nu_ref ) ** (Bs + srun * log( nu / nu_ref ) )'),\
      # ('dBUsync','log( nu / nu_ref ) * ( nu / nu_ref ) ** (Bs + srun * log( nu / nu_ref ) )') ] )
 
+if 'Qcmb' in analytic_expr_per_template.keys():
+	sky_components = ['cmb-only']
+if 'Qdust' in analytic_expr_per_template.keys():
+	sky_components = ['dust']
+if 'Qsync' in analytic_expr_per_template.keys():
+	sky_components = ['sync']
+if (('Qsync' in analytic_expr_per_template.keys()) and ('Qdust' in analytic_expr_per_template.keys())):
+	sky_components = ['dust+sync']
+
+if 'dBQdust' in analytic_expr_per_template.keys():
+	stolyarov = True
+else:
+	stolyarov = False
+if 'dBQsync' in analytic_expr_per_template.keys():
+	stolyarov_sync = True
+else:
+	stolyarov_sync = False
+
 ####################
 """
 SPECTRAL PARAMETERS
@@ -89,11 +119,11 @@ Don't touch h_over_k or cst.
 spectral_parameters = { 'nu_ref':150.0, \
 						'Bd':1.59,\
 					    'Td':19.6, \
-					    'h_over_k':h_over_k, \
+					    'h_over_k':CMB4U.h_over_k, \
 					    'drun':0.0, \
 					    'Bs':-3.1, \
 					    'srun':0.0,\
-					    'cst':cst }
+					    'cst':CMB4U.cst }
 
 ####################
 """
@@ -131,6 +161,7 @@ np_nside = 4
 """
 CMB "CHANNELS" TO BE USED AMONG TEMPERATURE, E-, B-MODES AND DEFLECTION D
 Tu = unlensed temperature
+d = lensing deflection field
 default = ['Tu', 'Eu', 'Bu', 'd']
 """
 information_channels= ['Tu', 'Eu', 'Bu', 'd']
@@ -143,7 +174,7 @@ DELENSING OPTION AMONG
 'CMBxCIB' = use of infrared background
 'CMBxLSS' = use of LSS imaginary 
 """
-delensing_option_v = ['','CMBxCMB','CMBxCIB', 'CMBxLSS']
+delensing_option_v = ['', 'CMBxCMB', 'CMBxCIB', 'CMBxLSS']
 
 ####################
 """
@@ -158,6 +189,7 @@ or download it at this link:
 """
 path_to_precomputed_spsp = 'path_to_spsp.pkl'
 path_to_your_spsp = '' # this should be a 2d array of size n_component x n_component
+path2maps = '/Users/josquin1/Documents/Dropbox/planck_maps' 
 
 ####################
 """
@@ -166,3 +198,4 @@ or download them at this link:
 """
 path_to_precomputed_Cls = 'path_to_Cls.pkl' 
 path_to_your_Cls = ''
+path2Cls='/Users/josquin1/Documents/Dropbox/self_consistent_forecast/codes/'

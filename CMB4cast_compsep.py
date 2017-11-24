@@ -590,7 +590,7 @@ def get_maps_and_spectra(path2files='./', fsky=0.5, analytic_expr_per_template={
 
 def CMB4cast_compsep(configurations={}, components_v=[''], exp='', np_nside=4, ell_min_camb=2, Cls_fid={}, \
 					spectral_parameters={}, analytic_expr_per_template={}, bandpass_channels={},\
-					camb='', drv=[], prior_spectral_parameters={}, ells_exp=0.0, path2files='' ):
+					camb='', drv=[], prior_spectral_parameters={}, ells_exp=0.0, path2files='', r_fid=0.001 ):
 	"""
 	@brief: main function for the comp sep part of CMB4cast
 	This is based on Errard et al (2011) formalism i.e. it gives statistical level of 
@@ -670,6 +670,8 @@ def CMB4cast_compsep(configurations={}, components_v=[''], exp='', np_nside=4, e
 		ind0_ = np.argmin(np.abs( Cls_fid['ell'] - 20 ))
 		ind1_ = np.argmin(np.abs( Cls_fid['ell'] - 200 ))
 		if components != 'cmb-only':
+			if 'BuBu_r1' not in Cls_fid.keys():
+				Cls_fid['BuBu_r1'] = Cls_fid['BuBu']/r_fid
 			foregrounds_exp[components]['r_eff'] = np.sum(foregrounds_exp[components]['Cl_res'][ind0:ind1] / Cls_fid['ell'][ind0:ind1] / (Cls_fid['ell'][ind0:ind1]+1.0) * 2.0 * np.pi) / np.sum(Cls_fid['BuBu_r1'][ind0_:ind1_] / Cls_fid['ell'][ind0_:ind1_] / (Cls_fid['ell'][ind0_:ind1_]+1.0) * 2.0 * np.pi) 
 		else:
 			foregrounds_exp[components]['r_eff'] = 0.0

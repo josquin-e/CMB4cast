@@ -36,24 +36,28 @@ import CMB4cast_Fisher
 from collections import OrderedDict
 
 
+arcmin_to_radian = np.pi/(60.0*180)
+
+import ctypes as ct
+dl = np.ctypeslib.load_library('libdelens', '.')
+dl.delensing_performance.argtypes = [ct.c_int, ct.c_int, \
+                                    ct.POINTER(ct.c_double), \
+                                    ct.POINTER(ct.c_double), \
+                                    ct.POINTER(ct.c_double), \
+                                    ct.POINTER(ct.c_double), \
+                                    ct.POINTER(ct.c_double), \
+                                    ct.POINTER(ct.c_double), \
+                                    ct.POINTER(ct.c_double), \
+                                    ct.c_double, ct.c_bool, \
+                                    ct.POINTER(ct.c_double), \
+                                    ct.POINTER(ct.c_double)]
 def pissoffpython():
-    import ctypes as ct
-    dl = np.ctypeslib.load_library('libdelens', '.')
-    dl.delensing_performance.argtypes = [ct.c_int, ct.c_int, \
-                                        ct.POINTER(ct.c_double), \
-                                        ct.POINTER(ct.c_double), \
-                                        ct.POINTER(ct.c_double), \
-                                        ct.POINTER(ct.c_double), \
-                                        ct.POINTER(ct.c_double), \
-                                        ct.POINTER(ct.c_double), \
-                                        ct.POINTER(ct.c_double), \
-                                        ct.c_double, ct.c_bool, \
-                                        ct.POINTER(ct.c_double), \
-                                        ct.POINTER(ct.c_double)]
-    def delens_est(l_min, l_max, c_l_ee_u, c_l_ee_l, c_l_bb_u, \
-                c_l_bb_l, c_l_pp, f_l_cor, n_l_ee_bb, thresh, \
-                no_iteration, n_l_pp, c_l_bb_res):
-        return dl.delensing_performance(ct.c_int(l_min), ct.c_int(l_max), \
+
+	def delens_est(l_min, l_max, c_l_ee_u, c_l_ee_l, c_l_bb_u, \
+                		c_l_bb_l, c_l_pp, f_l_cor, n_l_ee_bb, thresh, \
+                			no_iteration, n_l_pp, c_l_bb_res):
+
+		return dl.delensing_performance(ct.c_int(l_min), ct.c_int(l_max), \
                 c_l_ee_u.ctypes.data_as(ct.POINTER(ct.c_double)), \
                 c_l_ee_l.ctypes.data_as(ct.POINTER(ct.c_double)), \
                 c_l_bb_u.ctypes.data_as(ct.POINTER(ct.c_double)), \
@@ -65,51 +69,63 @@ def pissoffpython():
                 n_l_pp.ctypes.data_as(ct.POINTER(ct.c_double)), \
                 c_l_bb_res.ctypes.data_as(ct.POINTER(ct.c_double)))
 
-    # common parameters
-    l_min = 2
-    l_max = 4000
-    thresh = 0.01
-    no_iteration = False
-    f_cor = 0.0
-    cib_delens = False
-    if (cib_delens):
-        f_l_cor_raw = np.genfromtxt('f_l_cor_planck_545.dat')
-        f_l_cor = f_l_cor_raw[0: l_max - l_min + 1, 1].flatten()
-    else:
-        f_l_cor = np.ones(l_max - l_min + 1) * f_cor
-    c_l_u=np.genfromtxt('fiducial_lenspotentialCls.dat')
-    c_l_l=np.genfromtxt('fiducial_lensedtotCls.dat') 
-    ell = c_l_u[0: l_max - l_min + 1, 0].flatten()
-    d_l_conv = 2.0 * np.pi / ell / (ell + 1.0)
-    c_l_ee_u = c_l_u[0: l_max - l_min + 1, 2].flatten() * d_l_conv
-    c_l_ee_l = c_l_l[0: l_max - l_min + 1, 2].flatten() * d_l_conv
-    c_l_bb_u = c_l_u[0: l_max - l_min + 1, 3].flatten() * d_l_conv
-    c_l_bb_l = c_l_l[0: l_max - l_min + 1, 3].flatten() * d_l_conv
-    c_l_pp = c_l_u[0: l_max - l_min + 1, 5].flatten() / \
-		 (ell * (ell + 1.0)) ** 2 * 2.0 * np.pi
-    f_sky_new = 0.75
-    l_min_exp_new = int(np.ceil(2.0 * np.sqrt(np.pi / f_sky_new)))
-    spp = np.sqrt(2.0) * 0.58
-    beam = 1.0
-    beam =  beam / 60.0 / 180.0 * np.pi
-    beam_area = beam * beam
-    beam_theta = beam / np.sqrt(8.0 * np.log(2.0))
-    n_l_ee_bb = np.zeros(l_max - l_min + 1)
-    for i in range(0, l_max - l_min + 1):
-        bl=np.exp(beam_theta * beam_theta * (l_min + i) * (l_min + i + 1))
-        n_l_ee_bb[i] = (beam_area * spp * spp * bl)
-    n_l_pp = np.zeros(l_max - l_min + 1)
-    c_l_bb_res = np.zeros(l_max - l_min + 1)
-    delens_est(l_min_exp_new, l_max, c_l_ee_u[l_min_exp_new - l_min:], \
-		   c_l_ee_l[l_min_exp_new - l_min:], \
-		   c_l_bb_u[l_min_exp_new - l_min:], \
-		   c_l_bb_l[l_min_exp_new - l_min:], \
-		   c_l_pp[l_min_exp_new - l_min:], \
-		   f_l_cor[l_min_exp_new - l_min:], \
-		   n_l_ee_bb[l_min_exp_new - l_min:], \
-		   thresh, no_iteration, n_l_pp[l_min_exp_new - l_min:], \
-		   c_l_bb_res[l_min_exp_new - l_min:])
 
+	# common parameters
+	l_min = 2
+	l_max = 4000
+	thresh = 0.01
+	no_iteration = False
+	f_cor = 0.0
+	cib_delens = False
+	if (cib_delens):
+		f_l_cor_raw = np.genfromtxt('f_l_cor_planck_545.dat')
+		f_l_cor = f_l_cor_raw[0: l_max - l_min + 1, 1].flatten()
+	else:
+		f_l_cor = np.ones(l_max - l_min + 1) * f_cor
+	c_l_u = np.genfromtxt('fiducial_lenspotentialCls.dat')
+	c_l_l = np.genfromtxt('fiducial_lensedtotCls.dat') 
+	ell = c_l_u[0: l_max - l_min + 1, 0].flatten()
+	d_l_conv = 2.0 * np.pi / ell / (ell + 1.0)
+	c_l_ee_u = c_l_u[0: l_max - l_min + 1, 2].flatten() * d_l_conv
+	c_l_ee_l = c_l_l[0: l_max - l_min + 1, 2].flatten() * d_l_conv
+	c_l_bb_u = c_l_u[0: l_max - l_min + 1, 3].flatten() * d_l_conv
+	c_l_bb_l = c_l_l[0: l_max - l_min + 1, 3].flatten() * d_l_conv
+	c_l_pp = c_l_u[0: l_max - l_min + 1, 5].flatten() / \
+						 (ell * (ell + 1.0)) ** 2 * 2.0 * np.pi
+
+
+	# f_sky_new = 0.75
+	l_min_exp_new = l_min #int(np.ceil(2.0 * np.sqrt(np.pi / f_sky_new)))
+	spp = np.sqrt(2.0) * 0.58
+	beam = 1.0
+	beam =  beam / 60.0 / 180.0 * np.pi
+	beam_area = beam * beam
+	beam_theta = beam / np.sqrt(8.0 * np.log(2.0))
+	n_l_ee_bb = np.zeros(l_max - l_min + 1)
+	for i in range(0, l_max - l_min + 1):
+		bl=np.exp(beam_theta * beam_theta * (l_min + i) * (l_min + i + 1))
+		# n_l_ee_bb[i] = (beam_area * spp * spp * bl)
+		n_l_ee_bb[i] = (arcmin_to_radian**2 * spp * spp * bl)
+	n_l_pp = np.zeros(l_max - l_min + 1).flatten()
+	c_l_bb_res = np.zeros(l_max - l_min + 1).flatten()
+	    
+	factor = 1.0 
+
+	c_l_ee_u = np.ascontiguousarray( c_l_ee_u[l_min_exp_new - l_min:].flatten(), dtype=np.float64)
+	c_l_ee_l = np.ascontiguousarray( c_l_ee_l[l_min_exp_new - l_min:].flatten(), dtype=np.float64)
+	c_l_bb_u = np.ascontiguousarray( c_l_bb_u[l_min_exp_new - l_min:].flatten(), dtype=np.float64)
+	c_l_bb_l = np.ascontiguousarray( c_l_bb_l[l_min_exp_new - l_min:].flatten(), dtype=np.float64)
+	c_l_pp = np.ascontiguousarray( c_l_pp[l_min_exp_new - l_min:].flatten(), dtype=np.float64)
+	f_l_cor = np.ascontiguousarray( f_l_cor[l_min_exp_new - l_min:].flatten(), dtype=np.float64)
+	n_l_ee_bb = np.ascontiguousarray( n_l_ee_bb[l_min_exp_new - l_min:].flatten(), dtype=np.float64)
+	n_l_pp = np.ascontiguousarray( n_l_pp[l_min_exp_new - l_min:], dtype=np.float64)
+	c_l_bb_res = np.ascontiguousarray(  c_l_bb_res[l_min_exp_new - l_min:], dtype=np.float64)
+
+	delens_est(l_min_exp_new, l_max, c_l_ee_u, c_l_ee_l, c_l_bb_u, \
+		   								 c_l_bb_l, c_l_pp, f_l_cor, n_l_ee_bb, \
+		   									thresh, no_iteration, n_l_pp, c_l_bb_res )
+
+	# exit()
 
 ############################################################################################################################################################################################################
 ############################################################################################################################################################################################################
@@ -524,7 +540,7 @@ def initialize():
 			param_priors_v=[], cross_only=args.cross_only, Bd=1.59, Td=19.6, Bs=-3.1, \
 			stolyarov=args.stolyarov, stolyarov_sync=args.stolyarov_sync,\
 			cbass=args.cbass, quijote=args.quijote, \
-			delens_command_line=args.delens_command_line, calibration_error=args.calibration_error,\
+			calibration_error=args.calibration_error,\
 			path2maps=args.path2maps, path2Cls=args.path2Cls )
 
 		save_obj('./', res_file, (foregrounds, sigmas, Nl))
@@ -740,7 +756,7 @@ def core_function(configurations, components_v, camb, \
 	params_fid_v, params_dev_v, information_channels, delensing_option_v, \
 	delensing_z_max=-1.0, param_priors_v=[], cross_only=False, Bd=1.59, \
 	Td=19.6, Bs=-3.1, correlation_2_dusts=0.0, stolyarov=False, stolyarov_sync=False, cbass=False, quijote=False, \
-	delens_command_line=False, comp_sep_only=False, calibration_error=0.0, np_nside=4, no_lensing=False, A_lens=1.0, \
+	comp_sep_only=False, calibration_error=0.0, np_nside=4, no_lensing=False, A_lens=1.0, \
 	resolution=False, DESI=False, mpi_safe=False, path2maps='/Users/josquin1/Documents/Dropbox/planck_maps',\
 	path2Cls='/Users/josquin1/Documents/Dropbox/self_consistent_forecast/codes/', spectral_parameters=spectral_parameters, \
     analytic_expr_per_template=analytic_expr_per_template, bandpass_channels={}, drv=drv, \
@@ -772,6 +788,7 @@ def core_function(configurations, components_v, camb, \
 				output[file_] += 1
 
 	fnames_fid = [max(output.iteritems(), key=operator.itemgetter(1))[0]]
+
 
 	if output[fnames_fid[0]] < len(params_fid_v[0].keys())-1 :
 		fnames_fid = []
@@ -836,8 +853,11 @@ def core_function(configurations, components_v, camb, \
 	
 			ells[exp] =np.array(range(ell_min_camb, configurations[exp]['ell_max']+1))
 
+			# pissoffpython()
+
 			# comp sep !
-			Cls_fid_r = fc.derivatives_computation(Cls_fid, ['r'], params_fid, information_channels, exe=camb, path2Cls = path2Cls)['r']
+			# Cls_fid_r = fc.derivatives_computation(Cls_fid, ['r'], params_fid, information_channels, exe=camb, path2Cls = path2Cls)['r']
+
 			foregrounds[exp] = {}
 			# foregrounds[exp] = CMB4cast_compsep.CMB4cast_compsep(configurations=configurations, components_v=components_v, exp=exp, \
 							# cbass=cbass, quijote=quijote, np_nside=np_nside, ell_min_camb=ell_min_camb, Cls_fid=Cls_fid,\
@@ -847,8 +867,9 @@ def core_function(configurations, components_v, camb, \
 									np_nside=np_nside, ell_min_camb=ell_min_camb, Cls_fid=Cls_fid, spectral_parameters=spectral_parameters, \
 									analytic_expr_per_template=analytic_expr_per_template, camb=camb, drv=drv, \
 									prior_spectral_parameters=prior_spectral_parameters, ells_exp=ells[exp], \
-									path2files=path2maps )
-			pissoffpython()
+									path2files=path2maps, r_fid=params_fid_v[0]['r'] )
+
+			# pissoffpython()
 
 	########################################
 	## COMPUTE Nls for each experimental setup (NlTT, NlEE, NlBB, Nldd)
@@ -883,16 +904,7 @@ def core_function(configurations, components_v, camb, \
 	Nl_in = copy.copy(Nl)
     
 	# choose appropriate delensing forecast function
-	if delens_command_line:
-		CMB4cast_delens.cmd_delens(experiments, configurations, \
-								   components_v, \
-								   delensing_option_v_loc, \
-								   Cls_fid, f_l_cor_cib, f_l_cor_lss, Nl, \
-								   converge = converge, \
-								   cross_only = cross_only, \
-								   mpi_safe = mpi_safe)
-	else:
-		CMB4cast_delens.delens(experiments, configurations, \
+	CMB4cast_delens.delens(experiments, configurations, \
 							   components_v, delensing_option_v_loc, \
 							   Cls_fid, f_l_cor_cib, f_l_cor_lss, Nl,\
 							   converge = converge, \
@@ -938,9 +950,6 @@ def grabargs():
 						default = False)
 	parser.add_argument("--cross_only", action='store_true',\
 						help = "just compute cross-instruments only", \
-						default = False)
-	parser.add_argument("--delens_command_line", action='store_true',\
-						help = "force the use of command-line delensing instead of the f2py-compiled module", \
 						default = False)
 	parser.add_argument("--mpi_safe", action='store_true',\
 			    help = "make any temporary files MPI-safe by randomising name", \

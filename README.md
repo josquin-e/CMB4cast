@@ -5,12 +5,14 @@ It consists in three parts:
 - component separation of large scale diffuse foregrounds following procedure from Errard et al (2011)
 - delensing using EB quadratic estimator, CIB or futuristic Large Scale Surveys.
 - Fisher estimates of the error bars on the most common cosmological parameters. Error bars include cosmic and noise variance, as well as the effect from statistical foregrounds residuals. 
+The code has been illustrated in the results of Errard, Feeney, Peiris Jaffe (2016).
 
 <br>
 
 The code is in python.
 
 Librairies needed are :
+- camb
 - numpy
 - matplotlib
 - healpy
